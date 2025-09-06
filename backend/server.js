@@ -2,6 +2,9 @@ const express = require('express');
 const { Pool } = require('pg');
 const cors = require("cors"); 
 
+console.log("🚀 Backend serverdf ");
+
+
 const app = express();
 app.use(cors());
 app.use(express.json()); // 👈 so we can read JSON request bodies

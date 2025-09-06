@@ -1,0 +1,30 @@
+# Node.js dependencies
+backend/node_modules/
+frontend/node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+*.env
+
+# Docker
+**/pgdata/
+**/init/
+docker-compose.override.yml
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Build output
+frontend/build/
+backend/dist/
+
+# Misc
+*.swp
+*.swo
+.idea/
