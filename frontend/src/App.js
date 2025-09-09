@@ -7,7 +7,7 @@ function App() {
 
   // Fetch users
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_BACKEND_URL}/users`)
+    fetch("/api/users")
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         return res.json();
@@ -25,7 +25,7 @@ function App() {
     if (!name.trim()) return;
 
     try {
-      const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/users`, {
+      const res = await fetch("/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name }),

@@ -2,8 +2,7 @@ const express = require('express');
 const { Pool } = require('pg');
 const cors = require("cors"); 
 
-console.log("🚀 Backend serverdf ");
-
+console.log("🚀 Backend server is running 🚀");
 
 const app = express();
 app.use(cors());
