@@ -3,9 +3,6 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - main   # Trigger on pushes to main
-  pull_request:
-    branches:
       - main
 
 jobs:
@@ -14,57 +11,43 @@ jobs:
 
     steps:
       # 1. Checkout code
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Setup Node.js (for backend tests)
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
+      # 2. Set up Docker
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v2
 
-      # 3. Install deps & run tests
-      - name: Install dependencies
-        run: |
-          cd backend
-          npm install
-          npm test --if-present
-
-      # 4. Build Docker images
-      - name: Build Docker images
-        run: |
-          docker build -t my-backend ./backend
-          docker build -t my-nginx ./nginx
-
-      # 5. (Optional) Push to Docker Hub
-      - name: Login to Docker Hub
+      # 3. Log in to Docker Hub (optional: only if you want to push images)
+      - name: Log in to Docker Hub
+        if: secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != ''
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Push Docker images
+      # 4. Build backend image
+      - name: Build backend image
         run: |
-          docker tag my-backend mydockerhubuser/my-backend:latest
-          docker tag my-nginx mydockerhubuser/my-nginx:latest
-          docker push mydockerhubuser/my-backend:latest
-          docker push mydockerhubuser/my-nginx:latest
+          docker build -t my-backend -f backend/Dockerfile ./backend
 
-  # 6. Deploy (Optional — to server or cloud)
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - name: SSH into server & deploy
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            cd /apps/myproject
-            git pull origin main
-            docker-compose down
-            docker-compose pull
-            docker-compose up -d
+      # 5. Build frontend image
+      - name: Build frontend image
+        run: |
+          docker build -t my-frontend -f frontend/Dockerfile ./frontend
+
+      # 6. Build nginx image
+      - name: Build nginx image
+        run: |
+          docker build -t my-nginx -f nginx/Dockerfile ./nginx
+
+      # 7. Push images to Docker Hub (optional)
+      - name: Push Docker images
+        if: secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != ''
+        run: |
+          docker tag my-backend ${{ secrets.DOCKERHUB_USERNAME }}/my-backend:latest
+          docker tag my-frontend ${{ secrets.DOCKERHUB_USERNAME }}/my-frontend:latest
+          docker tag my-nginx ${{ secrets.DOCKERHUB_USERNAME }}/my-nginx:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-backend:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-frontend:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-nginx:latest
