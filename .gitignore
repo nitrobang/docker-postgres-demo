@@ -2,6 +2,10 @@
 backend/node_modules/
 frontend/node_modules/
 
+# Build output
+frontend/build/
+backend/dist/
+
 # Logs
 *.log
 npm-debug.log*
@@ -11,20 +15,19 @@ yarn-error.log*
 # Environment variables
 *.env
 
-# Docker
-**/pgdata/
-**/init/
+# Docker volumes and init scripts
+backend/init/
+pgdata/
 docker-compose.override.yml
 
 # OS generated files
 .DS_Store
 Thumbs.db
 
-# Build output
-frontend/build/
-backend/dist/
+# IDE/editor folders
+.idea/
+.vscode/
 
 # Misc
 *.swp
 *.swo
-.idea/
