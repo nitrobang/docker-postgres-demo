@@ -72,7 +72,7 @@ jobs:
           key: ${{ secrets.DEPLOY_KEY }}
           source: "docker-compose.yml,init/init.sql"
           target: "~/docker-postgres-demo"
-          tar_tmp_path: ""  # 👈 helps avoid tar utime/mode errors
+          tar: false
 
       # SSH into server and deploy
       - name: Deploy with docker-compose
