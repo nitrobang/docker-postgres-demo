@@ -63,16 +63,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Copy docker-compose.yml and configs to server
-      - name: Copy files to server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_KEY }}
-          source: "docker-compose.yml,init/init.sql"
-          target: "~/docker-postgres-demo"
-          tar_args: --overwrite
+      - name: Copy files manually with scp
+        run: scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no docker-compose.yml init/init.sql ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/docker-postgres-demo/
 
       # SSH into server and deploy
       - name: Deploy with docker-compose
