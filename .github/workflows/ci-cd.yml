@@ -81,3 +81,4 @@ jobs:
             cd ~/docker-postgres-demo
             docker-compose pull
             docker-compose up -d --force-recreate
+            
