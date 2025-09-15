@@ -56,7 +56,7 @@ jobs:
           docker push ${{ secrets.DOCKER_USERNAME }}/my-nginx:latest
 
       # 9️⃣ Deploy to remote server
-deploy:
+  deploy:
     runs-on: ubuntu-latest
     needs: build-and-push
     steps:
