@@ -58,34 +58,16 @@ jobs:
       # 9️⃣ Deploy to remote server
   deploy:
     runs-on: ubuntu-latest
-    needs: build-and-push
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-    
-      - name: Setup SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-
-
-      # Upload + deploy in one SSH session
-      - name: Deploy to server
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_KEY }}
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            # Ensure target directory exists
-            mkdir -p ~/docker-postgres-demo
-
-            # Upload docker-compose and init.sql using scp (inline)
-            scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa docker-compose.yml init/init.sql ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/docker-postgres-demo/
-
-            # Deploy
             cd ~/docker-postgres-demo
-            docker-compose pull
-            docker-compose up -d --force-recreate
+            docker-compose pull backend frontend nginx
+            docker-compose up -d backend frontend nginx
+            docker system prune -af --volumes
 
