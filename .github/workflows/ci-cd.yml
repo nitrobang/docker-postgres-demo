@@ -54,3 +54,33 @@ jobs:
         run: |
           docker tag my-nginx ${{ secrets.DOCKER_USERNAME }}/my-nginx:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/my-nginx:latest
+
+      # 9️⃣ Deploy to remote server
+deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Copy docker-compose.yml and configs to server
+      - name: Copy files to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          source: "docker-compose.yml,init/init.sql"
+          target: "~/docker-postgres-demo"
+
+      # SSH into server and deploy
+      - name: Deploy with docker-compose
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            cd ~/docker-postgres-demo
+            docker-compose pull
+            docker-compose up -d --force-recreate
