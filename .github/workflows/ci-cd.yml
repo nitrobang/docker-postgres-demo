@@ -72,8 +72,7 @@ jobs:
           key: ${{ secrets.DEPLOY_KEY }}
           source: "docker-compose.yml,init/init.sql"
           target: "~/docker-postgres-demo"
-          overwrite: true   # 👈 forces overwriting
-          tar_args: --no-overwrite-dir --ignore-permission-denied   # 👈 helps avoid tar utime/mode errors
+          tar_tmp_path: ""  # 👈 helps avoid tar utime/mode errors
 
       # SSH into server and deploy
       - name: Deploy with docker-compose
