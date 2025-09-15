@@ -70,7 +70,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
-            rm -rf ~/docker-postgres-demo/*
+            sudo rm -rf ~/docker-postgres-demo/*
 
 
       # Copy docker-compose.yml and configs to server
