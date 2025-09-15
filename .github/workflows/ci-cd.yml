@@ -63,26 +63,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Copy files to server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_KEY }}
-          source: "docker-compose.yml,init/*"
-          target: "~/docker-postgres-demo"
-          overwrite: true
-
-
-
-      # SSH into server and deploy
-      - name: Deploy with docker-compose
+      # Upload + deploy in one SSH session
+      - name: Deploy to server
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
+            # Ensure target directory exists
+            mkdir -p ~/docker-postgres-demo
+
+            # Upload docker-compose and init.sql using scp (inline)
+            scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa docker-compose.yml init/init.sql ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/docker-postgres-demo/
+
+            # Deploy
             cd ~/docker-postgres-demo
             docker-compose pull
             docker-compose up -d --force-recreate
