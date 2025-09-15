@@ -63,25 +63,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Cleanup server folder
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_KEY }}
-          script: |
-            sudo rm -rf ~/docker-postgres-demo/*
-
-
-      # Copy docker-compose.yml and configs to server
       - name: Copy files to server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
-          source: "docker-compose.yml,init/init.sql"
+          source: "docker-compose.yml,init/*"
           target: "~/docker-postgres-demo"
+          overwrite: true
+
+
 
       # SSH into server and deploy
       - name: Deploy with docker-compose
