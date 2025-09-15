@@ -62,6 +62,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+    
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
 
       # Upload + deploy in one SSH session
       - name: Deploy to server
@@ -81,4 +88,4 @@ jobs:
             cd ~/docker-postgres-demo
             docker-compose pull
             docker-compose up -d --force-recreate
-            
+
