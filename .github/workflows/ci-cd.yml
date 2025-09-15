@@ -78,7 +78,9 @@ jobs:
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
             cd ~/docker-postgres-demo
+            export IMAGE_TAG=${GITHUB_SHA::7}   # same as build step
             docker-compose pull backend frontend nginx
             docker-compose up -d backend frontend nginx
-            docker system prune -af --volumes
+          script_stop: true
+          command_timeout: 30m
 
