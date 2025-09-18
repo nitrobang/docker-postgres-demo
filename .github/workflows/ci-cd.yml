@@ -83,4 +83,3 @@ jobs:
             docker-compose up -d backend frontend nginx
           script_stop: true
           command_timeout: 30m
-
