@@ -3,8 +3,6 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
   build-and-push:
@@ -22,49 +20,38 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # 3️⃣ Set IMAGE_TAG (short commit SHA)
-      - name: Set Docker image tag
-        id: vars
-        run: echo "IMAGE_TAG=${GITHUB_SHA::7}" >> $GITHUB_ENV
+      # 3️⃣ Build & Push backend
+      - name: Build & Push backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/my-backend:${{ github.sha }}
+          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/my-backend:cache
+          cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/my-backend:cache,mode=max
 
-      # 4️⃣ Build backend image
-      - name: Build backend Docker image
-        run: |
-          docker build -t my-backend -f backend/Dockerfile ./backend
+      # 4️⃣ Build & Push frontend
+      - name: Build & Push frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/my-frontend:${{ github.sha }}
+          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/my-frontend:cache
+          cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/my-frontend:cache,mode=max
 
-      # 5️⃣ Build frontend image
-      - name: Build frontend Docker image
-        run: |
-          docker build -t my-frontend -f frontend/Dockerfile ./frontend
-
-      # 6️⃣ Build nginx image
-      - name: Build nginx Docker image
-        run: |
-          docker build -t my-nginx -f nginx/Dockerfile ./nginx
-
-      # 7️⃣ Tag and push backend
-      - name: Push backend to DockerHub
-        run: |
-          docker tag my-backend ${{ secrets.DOCKER_USERNAME }}/my-backend:${IMAGE_TAG}
-          docker tag my-backend ${{ secrets.DOCKER_USERNAME }}/my-backend:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/my-backend:${IMAGE_TAG}
-          docker push ${{ secrets.DOCKER_USERNAME }}/my-backend:latest
-
-      # 8️⃣ Tag and push frontend
-      - name: Push frontend to DockerHub
-        run: |
-          docker tag my-frontend ${{ secrets.DOCKER_USERNAME }}/my-frontend:${IMAGE_TAG}
-          docker tag my-frontend ${{ secrets.DOCKER_USERNAME }}/my-frontend:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/my-frontend:${IMAGE_TAG}
-          docker push ${{ secrets.DOCKER_USERNAME }}/my-frontend:latest
-
-      # 9️⃣ Tag and push nginx
-      - name: Push nginx to DockerHub
-        run: |
-          docker tag my-nginx ${{ secrets.DOCKER_USERNAME }}/my-nginx:${IMAGE_TAG}
-          docker tag my-nginx ${{ secrets.DOCKER_USERNAME }}/my-nginx:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/my-nginx:${IMAGE_TAG}
-          docker push ${{ secrets.DOCKER_USERNAME }}/my-nginx:latest
+      # 5️⃣ Build & Push nginx
+      - name: Build & Push nginx
+        uses: docker/build-push-action@v5
+        with:
+          context: ./nginx
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/my-nginx:${{ github.sha }}
+          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/my-nginx:cache
+          cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/my-nginx:cache,mode=max
 
   deploy:
     runs-on: ubuntu-latest
@@ -78,9 +65,14 @@ jobs:
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
             cd ~/docker-postgres-demo
-            export IMAGE_TAG=${GITHUB_SHA::7}   # same as build step
-            docker-compose pull backend frontend nginx
+
+            # Use immutable commit SHA as tag
+            export IMAGE_TAG=${GITHUB_SHA}
+
+            # Replace image tags in docker-compose.yml
+            sed -i "s|my-backend:.*|my-backend:${IMAGE_TAG}|g" docker-compose.yml
+            sed -i "s|my-frontend:.*|my-frontend:${IMAGE_TAG}|g" docker-compose.yml
+            sed -i "s|my-nginx:.*|my-nginx:${IMAGE_TAG}|g" docker-compose.yml
+
+            # Start only changed services without extra pulls
             docker-compose up -d backend frontend nginx
-          script_stop: true
-          command_timeout: 30m
-          
