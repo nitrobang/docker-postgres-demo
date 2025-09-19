@@ -11,55 +11,45 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout code
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2️⃣ Log in to DockerHub
       - name: Log in to DockerHub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # 3️⃣ Build backend image
-      - name: Build backend Docker image
+      # Backend
+      - name: Build & Push backend
         run: |
+          IMAGE_TAG=${GITHUB_SHA::7}
           docker build -t my-backend -f backend/Dockerfile ./backend
-
-      # 4️⃣ Build frontend image
-      - name: Build frontend Docker image
-        run: |
-          docker build -t my-frontend -f frontend/Dockerfile ./frontend
-
-      # 5️⃣ Build nginx image
-      - name: Build nginx Docker image
-        run: |
-          docker build -t my-nginx -f nginx/Dockerfile ./nginx
-
-      # 6️⃣ Tag and push backend
-      - name: Push backend to DockerHub
-        run: |
-          docker tag my-backend ${{ secrets.DOCKER_USERNAME }}/my-backend:${{ github.sha }}
-          docker push ${{ secrets.DOCKER_USERNAME }}/my-backend:${{ github.sha }}
           docker tag my-backend ${{ secrets.DOCKER_USERNAME }}/my-backend:latest
+          docker tag my-backend ${{ secrets.DOCKER_USERNAME }}/my-backend:$IMAGE_TAG
           docker push ${{ secrets.DOCKER_USERNAME }}/my-backend:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/my-backend:$IMAGE_TAG
 
-      # 7️⃣ Tag and push frontend
-      - name: Push frontend to DockerHub
+      # Frontend
+      - name: Build & Push frontend
         run: |
-          docker tag my-frontend ${{ secrets.DOCKER_USERNAME }}/my-frontend:${{ github.sha }}
-          docker push ${{ secrets.DOCKER_USERNAME }}/my-frontend:${{ github.sha }}
+          IMAGE_TAG=${GITHUB_SHA::7}
+          docker build -t my-frontend -f frontend/Dockerfile ./frontend
           docker tag my-frontend ${{ secrets.DOCKER_USERNAME }}/my-frontend:latest
+          docker tag my-frontend ${{ secrets.DOCKER_USERNAME }}/my-frontend:$IMAGE_TAG
           docker push ${{ secrets.DOCKER_USERNAME }}/my-frontend:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/my-frontend:$IMAGE_TAG
 
-      # 8️⃣ Tag and push nginx
-      - name: Push nginx to DockerHub
+      # Nginx
+      - name: Build & Push nginx
         run: |
-          docker tag my-nginx ${{ secrets.DOCKER_USERNAME }}/my-nginx:${{ github.sha }}
-          docker push ${{ secrets.DOCKER_USERNAME }}/my-nginx:${{ github.sha }}
+          IMAGE_TAG=${GITHUB_SHA::7}
+          docker build -t my-nginx -f nginx/Dockerfile ./nginx
           docker tag my-nginx ${{ secrets.DOCKER_USERNAME }}/my-nginx:latest
+          docker tag my-nginx ${{ secrets.DOCKER_USERNAME }}/my-nginx:$IMAGE_TAG
           docker push ${{ secrets.DOCKER_USERNAME }}/my-nginx:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/my-nginx:$IMAGE_TAG
+
 
   deploy:
     runs-on: ubuntu-latest
