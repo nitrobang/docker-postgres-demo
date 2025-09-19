@@ -71,18 +71,16 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
+          envs: GITHUB_SHA
           script: |
             cd ~/docker-postgres-demo
 
-            # Write IMAGE_TAG into .env (short SHA)
-            echo "IMAGE_TAG=${GITHUB_SHA::7}" > .env
-            cat .env   # ✅ for debugging
+            # ✅ Write IMAGE_TAG from GitHub SHA into .env
+            echo "IMAGE_TAG=${GITHUB_SHA:0:7}" > .env
+            cat .env   # debug
 
-            # Pull new images with correct tag
+            # Pull only updated images
             docker-compose pull backend frontend nginx
 
-            # Recreate services with new image
+            # Recreate services
             docker-compose up -d --force-recreate --no-deps backend frontend nginx
-
-            # Optional cleanup
-            docker system prune -af --volumes
