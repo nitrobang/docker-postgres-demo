@@ -69,6 +69,8 @@ jobs:
             echo "IMAGE_TAG=${GITHUB_SHA:0:7}" > .env
             cat .env   # debug
 
+            docker-compose down --remove-orphans
+
             # Pull only updated images
             docker-compose pull backend frontend nginx
 
