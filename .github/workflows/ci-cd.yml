@@ -74,14 +74,15 @@ jobs:
           script: |
             cd ~/docker-postgres-demo
 
-            # 🔹 Write commit SHA into .env file
-            echo "IMAGE_TAG=${GITHUB_SHA}" > .env
+            # Write IMAGE_TAG into .env (short SHA)
+            echo "IMAGE_TAG=${GITHUB_SHA::7}" > .env
+            cat .env   # ✅ for debugging
 
-            # 🔹 Pull updated images
-            docker-compose pull
+            # Pull new images with correct tag
+            docker-compose pull backend frontend nginx
 
-            # 🔹 Recreate containers with new images
-            docker-compose up -d
+            # Recreate services with new image
+            docker-compose up -d --force-recreate --no-deps backend frontend nginx
 
-            # 🔹 Optional cleanup
+            # Optional cleanup
             docker system prune -af --volumes
