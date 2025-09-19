@@ -44,7 +44,7 @@ function App() {
 
   return (
     <div style={{ padding: "20px" }}>
-      <h1>Users from Backend and deploy is workingg!!</h1>
+      <h1>Users from Backend and deploy is working!!</h1>
 
       {error && <p style={{ color: "red" }}>❌ {error}</p>}
 
