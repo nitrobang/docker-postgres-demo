@@ -75,4 +75,4 @@ jobs:
             docker-compose pull backend frontend nginx
 
             # Recreate services
-            docker-compose up -d --force-recreate --no-deps backend frontend nginx
+            docker-compose up -d
