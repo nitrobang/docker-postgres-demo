@@ -1,101 +1,68 @@
-🐳 30 Days of Docker – Portfolio Deployment
+# 🚀 Dockerized Portfolio + Cloud Deployment
 
-This repo documents my 30-day Docker journey, from basics to deploying a full-stack portfolio app with CI/CD, monitoring, and cloud setup.
+This repository documents my **30 Days of Docker journey** – from learning container basics to deploying full-stack apps on the cloud with monitoring and CI/CD automation.  
 
-📌 Tech Stack
+---
 
-Frontend: React (containerized)
+## 🛠️ Tech Stack
 
-Backend: Node.js / Express API (containerized)
+- **Frontend**: React.js  
+- **Backend**: Node.js + Express  
+- **Database**: PostgreSQL  
+- **Reverse Proxy**: Nginx  
+- **Containerization**: Docker, Docker Compose  
+- **Cloud**: AWS EC2, AWS ECS (Fargate), ECR  
+- **Monitoring**: cAdvisor, Prometheus, Grafana  
+- **CI/CD**: GitHub Actions (build → push → deploy via SSH)  
 
-Database: PostgreSQL + pgAdmin
+---
 
-Reverse Proxy: Nginx
+## ☁️ Docker/Cloud Setup
 
-Containerization: Docker & Docker Compose
+1. **Local Development**
+   - Each service (frontend, backend, nginx, db) has its own Dockerfile.
+   - `docker-compose.yml` spins up the entire stack locally.
+   - Hot reload enabled for frontend/backend in dev mode.
 
-Cloud Provider: AWS (EC2, ECS Fargate, ECR, ALB)
+2. **Production Deployment**
+   - Images built & pushed to **DockerHub / AWS ECR**.
+   - EC2 used initially for deployment (with Docker + Compose).
+   - Later migrated to **AWS ECS (Fargate)** with **Application Load Balancer**.
 
-CI/CD: GitHub Actions (Docker build & deploy pipeline)
+3. **Security**
+   - UFW firewall enabled → allow only SSH (22), HTTP (80), HTTPS (443).
+   - SSH key authentication (no password login).
+   - Secrets managed via GitHub Actions & AWS Secrets Manager.
 
-Monitoring:
+---
 
-cAdvisor (container-level metrics)
+## ⚙️ CI/CD Workflow (GitHub Actions)
 
-Prometheus (time-series monitoring)
+- On **push to main**:
+  1. Build Docker images (frontend, backend, nginx).  
+  2. Tag with short Git commit SHA (`GITHUB_SHA:0:7`).  
+  3. Push to DockerHub/ECR.  
+  4. SSH into EC2:
+     - Update `.env` with new `IMAGE_TAG`.  
+     - `docker-compose pull` → fetch latest images.  
+     - `docker-compose up -d --force-recreate`.  
+     - `docker system prune -af --volumes` (cleanup).  
 
-Grafana (dashboards & alerting)
+✅ Ensures every commit = new deployment.  
+✅ Rollback by redeploying previous SHA tag.  
 
-☁️ Docker + Cloud Setup
+---
 
-Local Development
+## 📊 Monitoring Setup
 
-Containerized frontend, backend, nginx, and DB using docker-compose.yml.
+1. **cAdvisor** → Collects container-level metrics (CPU, memory, network, I/O).  
+2. **Prometheus** → Scrapes metrics from cAdvisor.  
+3. **Grafana** → Visualizes metrics, dashboards, and alerts.  
 
-Init SQL scripts auto-run on first DB start.
+- Pre-built dashboards used:
+  - Docker Container Monitoring (ID: 893).  
+- Alerts configured:
+  - CPU usage > 80% for 5m → email notification via Gmail SMTP.  
 
-AWS EC2 Deployment
+---
 
-Provisioned Ubuntu EC2.
-
-Installed Docker & Docker Compose.
-
-Secured server with UFW + SSH keys.
-
-Deployed app stack via docker-compose.
-
-AWS ECS (Fargate) Deployment
-
-Built & pushed Docker images → AWS ECR.
-
-Created ECS Cluster + Task Definitions (frontend, backend, nginx).
-
-Used Application Load Balancer (ALB) to route traffic.
-
-🔄 CI/CD Workflow
-
-GitHub Actions Pipeline
-
-Trigger on every push/merge to main.
-
-Build Docker images for frontend, backend, nginx.
-
-Tag images with GitHub SHA for uniqueness.
-
-Push images to DockerHub / ECR.
-
-SSH into EC2 server → update .env with new IMAGE_TAG.
-
-Run docker-compose pull && docker-compose up -d --force-recreate.
-
-Cleanup old images (docker system prune).
-
-✅ Ensures zero-downtime deployments with reproducible builds.
-
-📊 Monitoring Setup
-
-cAdvisor
-
-Runs as a container.
-
-Exposes container CPU, memory, disk, and network metrics.
-
-Prometheus
-
-Scrapes metrics from cAdvisor (/metrics).
-
-Provides a query language (PromQL).
-
-Grafana
-
-Connected to Prometheus as a data source.
-
-Imported Docker + cAdvisor dashboard (ID: 893).
-
-Visualizes container performance in real-time.
-
-Alerts
-
-Prometheus → alert rules (CPU > 80% for 5m).
-
-Grafana → email/Slack notifications.
